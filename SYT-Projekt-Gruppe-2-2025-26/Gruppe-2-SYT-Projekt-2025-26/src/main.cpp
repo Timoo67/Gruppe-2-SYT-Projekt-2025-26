@@ -1,43 +1,35 @@
-#include <Arduino.h>
-#include <DHT.h>
+#include <OneWire.h>
+#include <DallasTemperature.h>
 
-#define dhtType DHT11
-#define dhtPin 32
+// Pin, an dem der Datenpin (DQ / OUT) angeschlossen ist
+#define ONE_WIRE_BUS 32
 
-DHT sensor(dhtPin, dhtType);
+// OneWire-Instanz erzeugen
+OneWire oneWire(ONE_WIRE_BUS);
 
-// put function declarations here:
-// int myFunction(int, int);
+// DallasTemperature-Bibliothek mit der OneWire-Instanz verbinden
+DallasTemperature sensors(&oneWire);
 
 void setup() {
-  Serial.begin(9600);
-  sensor.begin();
-  // put your setup code here, to run once:
-  // int result = myFunction(2, 3);
+  Serial.begin(115200);
+  sensors.begin();
+  Serial.println("DS18B20 Test gestartet");
 }
 
 void loop() {
-  float relLuftfeuchtigkeit = sensor.readHumidity();
-  float tempC = sensor.readTemperature();
+  // Temperaturmessung anfordern (alle Sensoren am Bus)
+  sensors.requestTemperatures();
 
-  if(isnan(relLuftfeuchtigkeit) || isnan(tempC))  {
-    Serial.println("Fehler beim Lesen der Daten!");
-    return;
+  // Temperatur des ersten (und einzigen) Sensors lesen
+  float tempC = sensors.getTempCByIndex(0);
+
+  if (tempC == DEVICE_DISCONNECTED_C) {
+    Serial.println("Fehler: Sensor nicht verbunden");
+  } else {
+    Serial.print("Temperatur: ");
+    Serial.print(tempC);
+    Serial.println(" °C");
   }
 
-  Serial.print("rel. Luftfeuchtigkeit: ");
-  Serial.print(String(relLuftfeuchtigkeit));
-  Serial.print("%");
-  Serial.print(" | ");
-  Serial.print("Temperature: ");
-  Serial.print(String(tempC, 2));
-  Serial.println("°C");
-  delay(2000);
-
-  // put your main code here, to run repeatedly:
+  delay(1000);
 }
-
-// put function definitions here:
-// int myFunction(int x, int y) {
-//   return x + y;
-// }
