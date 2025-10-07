@@ -3,7 +3,7 @@
 #include <DallasTemperature.h>
 
 // Pin, an dem der Datenpin (DQ / OUT) angeschlossen ist
-#define ONE_WIRE_BUS 32
+#define ONE_WIRE_BUS 14
 
 // OneWire-Instanz erzeugen
 OneWire oneWire(ONE_WIRE_BUS);
