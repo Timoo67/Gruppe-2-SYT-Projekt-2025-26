@@ -9,11 +9,14 @@ DHT dht(DHTPIN, DHTTYPE);
 const int digitalPinBoden = 14;
 const int analogPinBoden = 35;
 
+int fuellstandPin = 18;  // DO an D2
+
 void setup() {
 Serial.begin(115200);
 Serial.println(F("DHTxx test!"));
 dht.begin();
 pinMode(digitalPinBoden, INPUT);
+pinMode(fuellstandPin, INPUT_PULLUP);
 }
 void loop() {
   // Wait a few seconds between measurements.
@@ -47,6 +50,12 @@ void loop() {
   Serial.println(digitalValBoden);
 
   delay(1000);
+
+  int fuellstand = digitalRead(fuellstandPin);
+  if(fuellstand == 0) {
+    printf("\n\nWassertank leer");
+  }
+  delay(500);
 
   return;
 }
