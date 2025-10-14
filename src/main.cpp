@@ -6,56 +6,79 @@
 
 DHT dht(DHTPIN, DHTTYPE);
 
-const int digitalPinBoden = 14;
-const int analogPinBoden = 35;
+// Sensoren & Aktoren
+const int analogPinBoden = 35;   // Analoger Ausgang Bodenfeuchte
+const int fuellstandPin = 18;    // Digitaler Füllstandssensor
+const int pumpPin = 27;          // Relais / MOSFET für Pumpe
 
-int fuellstandPin = 18;  // DO an D2
+// Schwellenwerte
+const int FEUCHTIGKEIT_EIN = 30;  // Unter 30% -> Pumpe AN
+const int FEUCHTIGKEIT_AUS = 40;  // Über 40% -> Pumpe AUS
+
+// Zeitsteuerung
+unsigned long letzterLoop = 0;
+const unsigned long INTERVALL_LOOP = 1000; // 1 Sekunde Update
+
+bool pumpeAn = false;
 
 void setup() {
-Serial.begin(115200);
-Serial.println(F("DHTxx test!"));
-dht.begin();
-pinMode(digitalPinBoden, INPUT);
-pinMode(fuellstandPin, INPUT_PULLUP);
+  Serial.begin(115200);
+  Serial.println("\n🌿 ===== Automatische Bewässerungssteuerung gestartet =====");
+
+  dht.begin();
+  pinMode(analogPinBoden, INPUT);
+  pinMode(fuellstandPin, INPUT_PULLUP);
+  pinMode(pumpPin, OUTPUT);
+  digitalWrite(pumpPin, LOW);
 }
+
 void loop() {
-  // Wait a few seconds between measurements.
-  delay(2000);
-  // Reading temperature or humidity takes about 250 milliseconds!
-  // Sensor readings may also be up to 2 seconds 'old' (its a very slow sensor)
-  float h = dht.readHumidity();
-  // Read temperature as Celsius (the default)
-  float t = dht.readTemperature();
-  // Check if any reads failed and exit early (to try again).
-  if (isnan(h) || isnan(t)) {
-  Serial.println(F("Failed to read from DHT sensor!"));
+  unsigned long jetzt = millis();
+
+  if (jetzt - letzterLoop >= INTERVALL_LOOP) {
+    letzterLoop = jetzt;
+
+    // 🌱 Bodenfeuchte
+    int analogValBoden = analogRead(analogPinBoden);
+    float feuchteProzent = map(analogValBoden, 0, 4095, 100, 0);
+
+    // 💧 Füllstand
+    int fuellstand = digitalRead(fuellstandPin);
+    String tankStatus = (fuellstand == 0) ? "💧 Tank voll" : "⚠️ Tank leer";
+
+    // 🌡️ Temperatur & Luftfeuchtigkeit (immer mitlesen)
+    float temp = dht.readTemperature();
+    float luft = dht.readHumidity();
+
+    // 🚰 Pumpe steuern anhand Bodenfeuchte
+    if (feuchteProzent < FEUCHTIGKEIT_EIN && !pumpeAn) {
+      pumpeAn = true;
+      digitalWrite(pumpPin, HIGH);
+    } else if (feuchteProzent > FEUCHTIGKEIT_AUS && pumpeAn) {
+      pumpeAn = false;
+      digitalWrite(pumpPin, LOW);
+    }
+
+    // 🧾 Ausgabe
+    Serial.println("\n------------------------------------------");
+    Serial.print("⏱ Laufzeit: ");
+    Serial.print(jetzt / 1000.0, 1);
+    Serial.println(" s");
+
+    Serial.print("🌱 Bodenfeuchte: ");
+    Serial.print(feuchteProzent, 1);
+    Serial.println(" %");
+
+    Serial.print("💧 Füllstand: ");
+    Serial.println(tankStatus);
+
+    Serial.print("🌡️  Temperatur: ");
+    Serial.print(temp);
+    Serial.print(" °C   |   💨 Luftfeuchtigkeit: ");
+    Serial.print(luft);
+    Serial.println(" %");
+
+    Serial.print("🚰 Pumpe: ");
+    Serial.println(pumpeAn ? "AN ✅" : "AUS ⛔");
   }
-
-  Serial.print(F("\n\nHumidity: "));
-  Serial.print(h);
-  Serial.print(F("% \nTemperature: "));
-  Serial.print(t);
-  Serial.print(F("°C "));
-
-  int analogValBoden = analogRead(analogPinBoden);
-  int digitalValBoden = digitalRead(digitalPinBoden);
-
-  float moisturePercent = map(analogValBoden, 0, 4095, 100, 0);
-
-  Serial.print("\n\nAnalog: ");
-  Serial.print(analogValBoden);
-  Serial.print(" Feuchte ≈ ");
-  Serial.print(moisturePercent);
-  Serial.print("%  \nDigital: ");
-  Serial.println(digitalValBoden);
-
-  delay(1000);
-
-  int fuellstand = digitalRead(fuellstandPin);
-  if(fuellstand == 0) {
-    printf("\n\nWassertank leer");
-  }
-  delay(500);
-
-  return;
 }
