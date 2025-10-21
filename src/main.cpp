@@ -6,16 +6,10 @@
 #define DHTTYPE DHT11
 DHT dht(DHTPIN, DHTTYPE);
 
-<<<<<<< HEAD
-const int analogPinBoden = 35;
-const int fuellstandPin = 18;
-const int pumpPin = 12;
-=======
 // Sensoren & Aktoren
 const int analogPinBoden = 35;   // Analoger Ausgang Bodenfeuchte
 const int fuellstandPin = 18;    // Digitaler Füllstandssensor
 const int pumpPin = 12;          // Relais für Pumpe
->>>>>>> 8336128387460dcc205d44b75076894006595183
 
 const int FEUCHTIGKEIT_EIN = 30;
 const int FEUCHTIGKEIT_AUS = 40;
