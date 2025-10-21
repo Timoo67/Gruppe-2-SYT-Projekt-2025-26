@@ -9,7 +9,7 @@ DHT dht(DHTPIN, DHTTYPE);
 // Sensoren & Aktoren
 const int analogPinBoden = 35;   // Analoger Ausgang Bodenfeuchte
 const int fuellstandPin = 18;    // Digitaler Füllstandssensor
-const int pumpPin = 12;          // Relais / MOSFET für Pumpe
+const int pumpPin = 12;          // Relais für Pumpe
 
 // Schwellenwerte
 const int FEUCHTIGKEIT_EIN = 30;  // Unter 30% -> Pumpe AN
