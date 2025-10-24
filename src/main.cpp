@@ -1,6 +1,8 @@
 #include <WiFi.h>
 #include <WebServer.h>
 #include "DHT.h"
+#include <WiFi.h>
+#include <PubSubClient.h>
 
 #define DHTPIN 26
 #define DHTTYPE DHT11
