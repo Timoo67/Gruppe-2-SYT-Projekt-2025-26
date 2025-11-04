@@ -25,10 +25,7 @@ const char* password = "nvsrocks";
 const char* mqttServer = "172.16.93.132";
 const int mqttPort = 1883;
 
-const char* topicSoil = "test9988/soil";
-const char* topicTemp = "test9988/temp";
-const char* topicHum = "test9988/humidity";
-const char* topicPump = "test9988/pump/state";
+const char* topicAll = "test9988/all_sensors";
 
 WiFiClient espClient;
 PubSubClient client(espClient);
@@ -87,7 +84,7 @@ void loop() {
     float temp = dht.readTemperature();
     float luft = dht.readHumidity();
     int fuellstand = digitalRead(fuellstandPin);
-    String tank = (fuellstand == 0) ? "💧 Voll" : "⚠️ Leer";
+    String tank = (fuellstand == 0) ? "voll" : "leer";
 
     // Pumpensteuerung
     if (feuchte < FEUCHTIGKEIT_EIN && !pumpeAn) {
@@ -98,12 +95,19 @@ void loop() {
       digitalWrite(pumpPin, LOW);
     }
 
-    // MQTT senden
-    client.publish(topicSoil, String(feuchte).c_str(), true);
-    client.publish(topicTemp, String(temp).c_str(), true);
-    client.publish(topicHum, String(luft).c_str(), true);
-    client.publish(topicPump, pumpeAn ? "on" : "off", true);
+    // JSON erstellen
+    String payload = "{";
+    payload += "\"soil\":" + String(feuchte, 1) + ",";
+    payload += "\"temp\":" + String(temp, 1) + ",";
+    payload += "\"humidity\":" + String(luft, 1) + ",";
+    payload += "\"pump\":\"" + String(pumpeAn ? "on" : "off") + "\",";
+    payload += "\"tank\":\"" + tank + "\"";
+    payload += "}";
 
-    Serial.println("MQTT Daten gesendet");
+    // JSON über ein Topic senden
+    client.publish(topicAll, payload.c_str(), true);
+
+    Serial.println("MQTT JSON-Daten gesendet:");
+    Serial.println(payload);
   }
 }
