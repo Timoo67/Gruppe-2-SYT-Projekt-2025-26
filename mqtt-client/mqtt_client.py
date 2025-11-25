@@ -6,7 +6,7 @@ import json
 # ---------------- GUI SETUP ---------------- #
 root = tk.Tk()
 root.title("MQTT Temperatur Monitor")
-root.geometry("400x300")
+root.geometry("700x400")
 
 output_box = scrolledtext.ScrolledText(root, width=45, height=15, state="disabled")
 output_box.pack(pady=10)
@@ -19,7 +19,7 @@ def add_text(message):
 
 def on_connect(client, userdata, flags, reasonCode, properties):
     add_text("✅ Verbunden mit MQTT Broker (rc=" + str(reasonCode) + ")")
-    client.subscribe("test9988/all_sensors")
+    client.subscribe("Gruppe2/daten")
 
 
 def on_message(client, userdata, msg):
@@ -31,8 +31,9 @@ def on_message(client, userdata, msg):
             f"Luftfeuchtigkeit: {data['humidity']} %\n"
             f"Pumpe: {data['pump']}\n"
             f"Tank: {data['tank']}\n"
-            "----------------------------\n"
+            "----------------------------\n\n"
         )
+
         # Nachricht ins UI einfügen
         output_box.config(state="normal")
         output_box.insert(tk.END, display_text)
