@@ -25,7 +25,7 @@ const char* password = "nvsrocks";
 const char* mqttServer = "172.16.93.132";
 const int mqttPort = 1883;
 
-const char* topicAll = "test9988/all_sensors";
+const char* topicAll = "Gruppe2/daten";
 
 WiFiClient espClient;
 PubSubClient client(espClient);
@@ -36,10 +36,52 @@ void reconnectMQTT() {
     Serial.print("Verbinde mit MQTT...");
     if (client.connect("ESP32Client", NULL, NULL)) {
       Serial.println(" ✅ verbunden!");
+
+      // Abonniere hier dein Steuerung-Topic
+      client.subscribe("Gruppe2/pumpe");
     } else {
       Serial.print("❌ Fehler rc=");
       Serial.println(client.state());
       delay(2000);
+    }
+  }
+}
+
+enum SteuerModus { AUTO, MANUAL };
+SteuerModus modus = AUTO;
+
+void callback(char* topic, byte* payload, unsigned int length) {
+  String message;
+
+  for (unsigned int i = 0; i < length; i++) {
+    message += (char)payload[i];
+  }
+
+  Serial.print("MQTT Nachricht empfangen [");
+  Serial.print(topic);
+  Serial.print("]: ");
+  Serial.println(message);
+
+  // --- Pumpensteuerung über Broker ---
+  if (String(topic) == "Gruppe2/pumpe") {
+
+    if (message == "on") {
+      modus = MANUAL;
+      pumpeAn = true;
+      digitalWrite(pumpPin, HIGH);
+      Serial.println("➡ Pumpe EIN (MANUAL MQTT)");
+    }
+
+    else if (message == "off") {
+      modus = MANUAL;
+      pumpeAn = false;
+      digitalWrite(pumpPin, LOW);
+      Serial.println("➡ Pumpe AUS (MANUAL MQTT)");
+    }
+
+    else if (message == "auto") {
+      modus = AUTO;
+      Serial.println("➡ Steuerung zurück auf AUTOMATIK");
     }
   }
 }
@@ -86,14 +128,18 @@ void loop() {
     int fuellstand = digitalRead(fuellstandPin);
     String tank = (fuellstand == 0) ? "voll" : "leer";
 
-    // Pumpensteuerung
-    if (feuchte < FEUCHTIGKEIT_EIN && !pumpeAn) {
-      pumpeAn = true;
-      digitalWrite(pumpPin, HIGH);
-    } else if (feuchte > FEUCHTIGKEIT_AUS && pumpeAn) {
-      pumpeAn = false;
-      digitalWrite(pumpPin, LOW);
-    }
+    client.setCallback(callback);
+
+    if(modus == AUTO) {
+      // Pumpensteuerung
+      if (feuchte < FEUCHTIGKEIT_EIN && !pumpeAn) {
+        pumpeAn = true;
+        digitalWrite(pumpPin, HIGH);
+      } else if (feuchte > FEUCHTIGKEIT_AUS && pumpeAn) {
+        pumpeAn = false;
+        digitalWrite(pumpPin, LOW);
+      }
+    }  
 
     // JSON erstellen
     String payload = "{";
@@ -101,6 +147,7 @@ void loop() {
     payload += "\"temp\":" + String(temp, 1) + ",";
     payload += "\"humidity\":" + String(luft, 1) + ",";
     payload += "\"pump\":\"" + String(pumpeAn ? "on" : "off") + "\",";
+    payload += "\"mode\":\"" + String(modus == AUTO ? "auto" : "manual") + "\",";
     payload += "\"tank\":\"" + tank + "\"";
     payload += "}";
 
