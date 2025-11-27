@@ -2,7 +2,8 @@
 #include <WebServer.h>
 #include "DHT.h"
 #include <PubSubClient.h>
-
+#include <U8g2lib.h>
+#include <Wire.h>
 // #include <ArduinoJson.h>
 
 // ---------- SENSOR & AKTOREN ----------
