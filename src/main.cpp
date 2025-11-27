@@ -11,6 +11,9 @@
 #define DHTTYPE DHT11
 DHT dht(DHTPIN, DHTTYPE);
 
+U8G2_SSD1306_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, U8X8_PIN_NONE);
+const char COPYRIGHT_SYMBOL[] = { 0xa9, '\0' };
+
 const int analogPinBoden = 35; // Bodenfeuchte
 const int fuellstandPin = 18;  // Füllstand
 const int pumpPin = 12;        // Pumpe
