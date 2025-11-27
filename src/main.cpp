@@ -155,8 +155,7 @@ void setup() {
   pinMode(fuellstandPin, INPUT_PULLUP);
   pinMode(pumpPin, OUTPUT);
 
-  // modus = AUTO;
-  // client.setCallback(callback);
+  client.setCallback(callback);
 
   // WLAN STA
   WiFi.begin(ssid, password);
