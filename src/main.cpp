@@ -3,6 +3,8 @@
 #include "DHT.h"
 #include <PubSubClient.h>
 
+// #include <ArduinoJson.h>
+
 // ---------- SENSOR & AKTOREN ----------
 #define DHTPIN 26
 #define DHTTYPE DHT11
@@ -33,8 +35,11 @@ PubSubClient client(espClient);
 // ---------- MQTT Funktionen ----------
 void reconnectMQTT() {
   while (!client.connected()) {
+    String clientId = "ESP32-Pflanzenbox-";
+    clientId += String(random(0xffff), HEX);
+
     Serial.print("Verbinde mit MQTT...");
-    if (client.connect("ESP32Client", NULL, NULL)) {
+    if (client.connect(clientId.c_str(), "syt_mqtt", "YdNfbqg5AD9JD9P")) {
       Serial.println(" ✅ verbunden!");
 
       // Abonniere hier dein Steuerung-Topic
@@ -140,6 +145,36 @@ void loop() {
         digitalWrite(pumpPin, LOW);
       }
     }  
+
+    /*if (millis() - lastSend > 2000) {
+  lastSend = millis();
+
+  int analogValBoden = analogRead(analogPinBoden);
+  float feuchte = map(analogValBoden, 0, 4095, 100, 0);
+  float temp = dht.readTemperature();
+  float luft = dht.readHumidity();
+  int fuellstand = digitalRead(fuellstandPin);
+  String tank = (fuellstand == 0) ? "voll" : "leer";
+
+  // JSON Objekt erstellen
+  StaticJsonDocument<256> doc;
+
+  doc["soil"]     = feuchte;
+  doc["temp"]     = temp;
+  doc["humidity"] = luft;
+  doc["pump"]     = pumpeAn ? "on" : "off";
+  doc["mode"]     = (modus == AUTO) ? "auto" : "manual";
+  doc["tank"]     = tank;
+
+  // JSON in String umwandeln
+  String jsonString;
+  serializeJson(doc, jsonString);
+
+  client.publish(topicAll, jsonString.c_str());
+
+  Serial.println("MQTT JSON gesendet:");
+  Serial.println(jsonString);
+}*/
 
     // JSON erstellen
     String payload = "{";
