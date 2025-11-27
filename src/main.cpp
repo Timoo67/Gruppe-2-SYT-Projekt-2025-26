@@ -22,6 +22,55 @@ const int FEUCHTIGKEIT_AUS = 40;
 
 bool pumpeAn = false;
 
+void u8g2_prepare() {
+    u8g2.setFont(u8g2_font_6x10_tf);
+    u8g2.setFontRefHeightExtendedText();
+    u8g2.setDrawColor(1);
+    u8g2.setFontPosTop();
+    u8g2.setFontDirection(0);
+  }
+
+void drawStr() {
+  // Puffer löschen
+  u8g2.clearBuffer();
+  u8g2_prepare();
+
+  // Werte vom Sensor
+  int analogValBoden = analogRead(analogPinBoden);
+  float feuchte = map(analogValBoden, 0, 4095, 100, 0);
+  float temp = dht.readTemperature();
+  float luft = dht.readHumidity();
+  int fuellstand = digitalRead(fuellstandPin);
+  String tank = (fuellstand == 0) ? "voll" : "leer";
+
+  // Text auf OLED schreiben
+  u8g2.setCursor(0, 0); // x=0, y=0 (oben links)
+  u8g2.print("Temp: "); 
+  u8g2.print(temp, 1);
+  u8g2.print(" C");
+
+  u8g2.setCursor(0, 12);
+  u8g2.print("Humidity: "); 
+  u8g2.print(luft, 1);
+  u8g2.print(" %");
+
+  u8g2.setCursor(0, 24);
+  u8g2.print("Soil: "); 
+  u8g2.print(feuchte, 1);
+  u8g2.print(" %");
+
+  u8g2.setCursor(0, 36);
+  u8g2.print("Tank: "); 
+  u8g2.print(tank);
+
+  u8g2.setCursor(0, 48);
+  u8g2.print("Pump: "); 
+  u8g2.print(pumpeAn ? "ON" : "OFF");
+
+  // Puffer auf Display senden
+  u8g2.sendBuffer();
+}
+
 // ---------- WLAN ----------
 const char* ssid = "NVS-Europa";
 const char* password = "nvsrocks";
@@ -106,6 +155,9 @@ void setup() {
   pinMode(fuellstandPin, INPUT_PULLUP);
   pinMode(pumpPin, OUTPUT);
 
+  // modus = AUTO;
+  // client.setCallback(callback);
+
   // WLAN STA
   WiFi.begin(ssid, password);
   Serial.print("Verbinde mit WLAN...");
@@ -139,8 +191,6 @@ void loop() {
     int fuellstand = digitalRead(fuellstandPin);
     String tank = (fuellstand == 0) ? "voll" : "leer";
 
-    client.setCallback(callback);
-
     if(modus == AUTO) {
       // Pumpensteuerung
       if (feuchte < FEUCHTIGKEIT_EIN && !pumpeAn) {
@@ -168,4 +218,6 @@ void loop() {
     Serial.println("MQTT JSON-Daten gesendet:");
     Serial.println(payload);
   }
+
+  drawStr();
 }
