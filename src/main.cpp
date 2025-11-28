@@ -41,7 +41,7 @@ void drawStr() {
   float temp = dht.readTemperature();
   float luft = dht.readHumidity();
   int fuellstand = digitalRead(fuellstandPin);
-  String tank = (fuellstand == 0) ? "voll" : "leer";
+  String tank = (fuellstand == 1) ? "voll" : "leer";
 
   // Text auf OLED schreiben
   u8g2.setCursor(0, 0); // x=0, y=0 (oben links)
@@ -188,7 +188,7 @@ void loop() {
     float temp = dht.readTemperature();
     float luft = dht.readHumidity();
     int fuellstand = digitalRead(fuellstandPin);
-    String tank = (fuellstand == 0) ? "voll" : "leer";
+    String tank = (fuellstand == 1) ? "voll" : "leer";
 
     if(modus == AUTO) {
       // Pumpensteuerung

@@ -1,14 +1,15 @@
 import paho.mqtt.client as mqtt
 import tkinter as tk
-from tkinter import scrolledtext
+from tkinter import scrolledtext, font
 import json
 
 # ---------------- GUI SETUP ---------------- #
 root = tk.Tk()
 root.title("MQTT Temperatur Monitor")
-root.geometry("700x400")
+root.geometry("1920x1080")
 
-output_box = scrolledtext.ScrolledText(root, width=45, height=15, state="disabled")
+customfont = font.Font(family="Arial", size=24)
+output_box = scrolledtext.ScrolledText(root, width=100, height=35, state="disabled", font=customfont)
 output_box.pack(pady=10)
 
 def add_text(message):
