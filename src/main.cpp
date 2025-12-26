@@ -11,7 +11,7 @@
 DHT dht(DHTPIN, DHTTYPE);
 
 U8G2_SSD1306_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, U8X8_PIN_NONE);
-const char COPYRIGHT_SYMBOL[] = { 0xa9, '\0' };
+const char COPYRIGHT_SYMBOL[] = {0xa9, '\0'};
 
 const int analogPinBoden = 35; // Bodenfeuchte
 const int fuellstandPin = 18;  // Füllstand
@@ -22,15 +22,17 @@ const int FEUCHTIGKEIT_AUS = 40;
 
 bool pumpeAn = false;
 
-void u8g2_prepare() {
-    u8g2.setFont(u8g2_font_6x10_tf);
-    u8g2.setFontRefHeightExtendedText();
-    u8g2.setDrawColor(1);
-    u8g2.setFontPosTop();
-    u8g2.setFontDirection(0);
-  }
+void u8g2_prepare()
+{
+  u8g2.setFont(u8g2_font_6x10_tf);
+  u8g2.setFontRefHeightExtendedText();
+  u8g2.setDrawColor(1);
+  u8g2.setFontPosTop();
+  u8g2.setFontDirection(0);
+}
 
-void drawStr() {
+void drawStr()
+{
   // Puffer löschen
   u8g2.clearBuffer();
   u8g2_prepare();
@@ -45,26 +47,26 @@ void drawStr() {
 
   // Text auf OLED schreiben
   u8g2.setCursor(0, 0); // x=0, y=0 (oben links)
-  u8g2.print("Temp: "); 
+  u8g2.print("Temp: ");
   u8g2.print(temp, 1);
   u8g2.print(" C");
 
   u8g2.setCursor(0, 12);
-  u8g2.print("Humidity: "); 
+  u8g2.print("Humidity: ");
   u8g2.print(luft, 1);
   u8g2.print(" %");
 
   u8g2.setCursor(0, 24);
-  u8g2.print("Soil: "); 
+  u8g2.print("Soil: ");
   u8g2.print(feuchte, 1);
   u8g2.print(" %");
 
   u8g2.setCursor(0, 36);
-  u8g2.print("Tank: "); 
+  u8g2.print("Tank: ");
   u8g2.print(tank);
 
   u8g2.setCursor(0, 48);
-  u8g2.print("Pump: "); 
+  u8g2.print("Pump: ");
   u8g2.print(pumpeAn ? "ON" : "OFF");
 
   // Puffer auf Display senden
@@ -72,31 +74,36 @@ void drawStr() {
 }
 
 // ---------- WLAN ----------
-const char* ssid = "NVS-Europa";
-const char* password = "nvsrocks";
+const char *ssid = "NVS-Europa";
+const char *password = "nvsrocks";
 
 // ---------- MQTT ----------
-const char* mqttServer = "172.16.93.132";
+const char *mqttServer = "172.16.93.132";
 const int mqttPort = 1883;
 
-const char* topicAll = "Gruppe2/daten";
+const char *topicAll = "Gruppe2/daten";
 
 WiFiClient espClient;
 PubSubClient client(espClient);
 
 // ---------- MQTT Funktionen ----------
-void reconnectMQTT() {
-  while (!client.connected()) {
+void reconnectMQTT()
+{
+  while (!client.connected())
+  {
     String clientId = "ESP32-Pflanzenbox-";
     clientId += String(random(0xffff), HEX);
 
     Serial.print("Verbinde mit MQTT...");
-    if (client.connect(clientId.c_str(), "syt_mqtt", "YdNfbqg5AD9JD9P")) {
+    if (client.connect(clientId.c_str(), "syt_mqtt", "YdNfbqg5AD9JD9P"))
+    {
       Serial.println(" ✅ verbunden!");
 
       // Abonniere hier dein Steuerung-Topic
       client.subscribe("Gruppe2/pumpe");
-    } else {
+    }
+    else
+    {
       Serial.print("❌ Fehler rc=");
       Serial.println(client.state());
       delay(2000);
@@ -104,13 +111,19 @@ void reconnectMQTT() {
   }
 }
 
-enum SteuerModus { AUTO, MANUAL };
+enum SteuerModus
+{
+  AUTO,
+  MANUAL
+};
 SteuerModus modus = AUTO;
 
-void callback(char* topic, byte* payload, unsigned int length) {
+void callback(char *topic, byte *payload, unsigned int length)
+{
   String message;
 
-  for (unsigned int i = 0; i < length; i++) {
+  for (unsigned int i = 0; i < length; i++)
+  {
     message += (char)payload[i];
   }
 
@@ -120,23 +133,27 @@ void callback(char* topic, byte* payload, unsigned int length) {
   Serial.println(message);
 
   // --- Pumpensteuerung über Broker ---
-  if (String(topic) == "Gruppe2/pumpe") {
+  if (String(topic) == "Gruppe2/pumpe")
+  {
 
-    if (message == "on") {
+    if (message == "on")
+    {
       modus = MANUAL;
       pumpeAn = true;
       digitalWrite(pumpPin, HIGH);
       Serial.println("➡ Pumpe EIN (MANUAL MQTT)");
     }
 
-    else if (message == "off") {
+    else if (message == "off")
+    {
       modus = MANUAL;
       pumpeAn = false;
       digitalWrite(pumpPin, LOW);
       Serial.println("➡ Pumpe AUS (MANUAL MQTT)");
     }
 
-    else if (message == "auto") {
+    else if (message == "auto")
+    {
       modus = AUTO;
       Serial.println("➡ Steuerung zurück auf AUTOMATIK");
     }
@@ -144,7 +161,8 @@ void callback(char* topic, byte* payload, unsigned int length) {
 }
 
 // ---------- SETUP ----------
-void setup() {
+void setup()
+{
   Serial.begin(115200);
   dht.begin();
 
@@ -160,7 +178,8 @@ void setup() {
   // WLAN STA
   WiFi.begin(ssid, password);
   Serial.print("Verbinde mit WLAN...");
-  while (WiFi.status() != WL_CONNECTED) {
+  while (WiFi.status() != WL_CONNECTED)
+  {
     delay(500);
     Serial.print(".");
   }
@@ -175,12 +194,15 @@ void setup() {
 // ---------- LOOP ----------
 unsigned long lastSend = 0;
 
-void loop() {
-  if (!client.connected()) reconnectMQTT();
+void loop()
+{
+  if (!client.connected())
+    reconnectMQTT();
   client.loop();
 
   // Automatisches Senden alle 2 Sekunden
-  if (millis() - lastSend > 2000) {
+  if (millis() - lastSend > 2000)
+  {
     lastSend = millis();
 
     int analogValBoden = analogRead(analogPinBoden);
@@ -190,16 +212,20 @@ void loop() {
     int fuellstand = digitalRead(fuellstandPin);
     String tank = (fuellstand == 1) ? "voll" : "leer";
 
-    if(modus == AUTO) {
+    if (modus == AUTO)
+    {
       // Pumpensteuerung
-      if (feuchte < FEUCHTIGKEIT_EIN && !pumpeAn) {
+      if (feuchte < FEUCHTIGKEIT_EIN && !pumpeAn)
+      {
         pumpeAn = true;
         digitalWrite(pumpPin, HIGH);
-      } else if (feuchte > FEUCHTIGKEIT_AUS && pumpeAn) {
+      }
+      else if (feuchte > FEUCHTIGKEIT_AUS && pumpeAn)
+      {
         pumpeAn = false;
         digitalWrite(pumpPin, LOW);
       }
-    }  
+    }
 
     // JSON erstellen
     String payload = "{";
